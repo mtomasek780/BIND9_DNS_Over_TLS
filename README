@@ -1,8 +1,8 @@
 Here's what you need to modify on your working BIND9 install and assumes you have installed stunnel to your Linux distro already:
 
-- Inside of your options file, for me that was /etc/named.conf, alter your forwarder to forward to your new stunnel setup that will listen on port 1053.  Make sure stunnel only listens on 127.0.0.1 since it will run as root.  You want to foward all requests that you don't host internally and that's why "forward only" is used.
+- Inside of your options file, for me that was /etc/named.conf, alter your forwarder to forward to your new stunnel setup that will listen on port 1053.  Make sure stunnel only listens on 127.0.0.1 since it will run as root.  You want to forward all requests that you don't host internally and that's why "forward only" is used after the forwarders definition.
 
-- The "server" is added to the directive that if your BIND9 server uses the forwarder, then it must push the packets over tcp and not udp
+- The "server" section is added outside of the options section to instruct BIND9 to push the packets over tcp and not udp to stunnel.
 
 # /etc/named.conf
 
@@ -24,11 +24,11 @@ server 127.0.0.1 {
 };
 
 
-The next step is to create a stunnel config file... I put mine in /etc/stunnel/ and you can find that file in the repository, but let's break it down:
+After you save that change to your BIND9 config, the next step is to create a stunnel config file... I put mine in /etc/stunnel/ and you can find that file in the GitHub repository, but let's break it down:
 
-- First, I don't allow sslv3, tls1, or tls1.2 because Quad9 won't reply.  Then I must force stunnel to use tls1.2 or it will ignore my options and still use tls1.0
+- First, I don't allow sslv3, tls1, or tls1.1 because Quad9 won't reply.  I must force stunnel to use tls1.2 or it will ignore my options and still use tls1.0 even though the options say not to.
 
-- Second, I tell stunnel to use the client setting to listen for requests that will come from BIND9
+- Second, I tell stunnel to use the client setting to listen for requests that will come from BIND9 that we previously setup to forward to stunnel
 
 - Third, I listed on 127.0.0.1 for requests from BIND, I like running this on 127.0.0.1 since the stunnel service will run as root, so why expose a root level service to the network?
 
@@ -36,7 +36,7 @@ The next step is to create a stunnel config file... I put mine in /etc/stunnel/ 
 
 
 
-The next section is simple, I go into my /etc/resolv.conf file and remove all DNS resolvers except for 127.0.0.1. From there, I edit my /etc/hosts and add  9.9.9.9   dns.quad9.net to help the stunnel config start, from there, it will use the Stunnel box to ensure all traffic goes through DNS over TLS.
+The next step is simple, I go into my /etc/resolv.conf file and remove all DNS resolvers except for 127.0.0.1 so I don't use port 53 anymore. From there, I edit my /etc/hosts and add  "9.9.9.9   dns.quad9.net" to help the stunnel config start, from there, it will use the Stunnel process to ensure all traffic goes through DNS over TLS.
 
 
 
@@ -44,7 +44,7 @@ Finally, I setup a crontab for root:
 
 @reboot /usr/bin/stunnel /etc/stunnel/tls_dns.conf
 
-Now, if my server reboots and when BIND9 comes up, I will have stunnel waiting for requests and ready to go.
+Now, if my server reboots and when BIND9 comes up, I will have stunnel waiting for requests and ready to go.  For extra efficency, I setup a firewall rule to forbid traffic on TCP/UDP 53 and now all my traffic flows out of TCP 853 which is DNS over TLS.
 
 
 Enjoy!
