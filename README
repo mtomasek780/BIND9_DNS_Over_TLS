@@ -1,0 +1,51 @@
+Here's what you need to modify on your working BIND9 install and assumes you have installed stunnel to your Linux distro already:
+
+- Inside of your options file, alter your forwarder to forward to your new stunnel setup that will listen on port 1053.  Make sure stunnel only listens on 127.0.0.1 since it will run as root.  You want to foward all requests that you don't host internally and that's why "forward only" is used.
+
+- The "server" is added to the directive that if your BIND9 server uses the forwarder, then it must push the packets over tcp and not udp
+
+# /etc/named.conf
+
+options {
+                    ..
+                    
+                    forwarders {
+                                127.0.0.1 port 1053;
+                    };
+                    forward only;
+                    
+                    
+                    ..
+                    
+};
+
+server 127.0.0.1 {
+        tcp-only yes;
+};
+
+
+The next step is to create a stunnel config file... I put mine in /etc/stunnel/ and you can find that file in the repository, but let's break it down:
+
+- First, I don't allow sslv3, tls1, or tls1.2 because Quad9 won't reply.  Then I must force stunnel to use tls1.2 or it will ignore my options and still use tls1.0
+
+- Second, I tell stunnel to use the client setting to listen for requests that will come from BIND9
+
+- Third, I listed on 127.0.0.1 for requests from BIND, I like running this on 127.0.0.1 since the stunnel service will run as root, so why expose a root level service to the network?
+
+- Finally, I tell it to connect to dns.quad9.net and use port 853
+
+
+
+The next section is simple, I go into my /etc/resolv.conf file and remove all DNS resolvers except for 127.0.0.1. From there, I edit my /etc/hosts and add  9.9.9.9   dns.quad9.net to help the stunnel config start, from there, it will use the Stunnel box to ensure all traffic goes through DNS over TLS.
+
+
+
+Finally, I setup a crontab for root:
+
+@reboot /usr/bin/stunnel /etc/stunnel/tls_dns.conf
+
+Now, if my server reboots and when BIND9 comes up, I will have stunnel waiting for requests and ready to go.
+
+
+Enjoy!
+
