@@ -1,6 +1,6 @@
 Here's what you need to modify on your working BIND9 install and assumes you have installed stunnel to your Linux distro already:
 
-- Inside of your options file, alter your forwarder to forward to your new stunnel setup that will listen on port 1053.  Make sure stunnel only listens on 127.0.0.1 since it will run as root.  You want to foward all requests that you don't host internally and that's why "forward only" is used.
+- Inside of your options file, for me that was /etc/named.conf, alter your forwarder to forward to your new stunnel setup that will listen on port 1053.  Make sure stunnel only listens on 127.0.0.1 since it will run as root.  You want to foward all requests that you don't host internally and that's why "forward only" is used.
 
 - The "server" is added to the directive that if your BIND9 server uses the forwarder, then it must push the packets over tcp and not udp
 
