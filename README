@@ -24,7 +24,7 @@ server 127.0.0.1 {
 };
 
 
-After you save that change to your BIND9 config, the next step is to create a stunnel config file... I put mine in /etc/stunnel/ and you can find that file in the GitHub repository, but let's break it down:
+After you save that change to your BIND9 config, the next step is to create a stunnel config file... I put mine in /etc/stunnel/ and you can find that file in the GitHub repository as tls_dnf.conf, but let's break it down:
 
 - First, I don't allow sslv3, tls1, or tls1.1 because Quad9 won't reply.  I must force stunnel to use tls1.2 or it will ignore my options and still use tls1.0 even though the options say not to.
 
