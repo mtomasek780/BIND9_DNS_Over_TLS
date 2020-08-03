@@ -36,7 +36,7 @@ After you save that change to your BIND9 config, the next step is to create a st
 
 
 
-The next step is simple, I go into my /etc/resolv.conf file and remove all DNS resolvers except for 127.0.0.1 so I don't use port 53 anymore. From there, I edit my /etc/hosts and add  "9.9.9.9   dns.quad9.net" to help the stunnel config start, from there, it will use the Stunnel process to ensure all traffic goes through DNS over TLS.
+The next step is simple, I go into my /etc/resolv.conf file and remove all DNS resolvers except for 127.0.0.1 so I don't use port 53 anymore. 
 
 
 
